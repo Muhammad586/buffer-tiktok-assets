@@ -1,0 +1,29 @@
+name: Assemble video
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'chunks/**'
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble mp4 from base64 chunks
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          cat chunks/part_* | base64 -d > pub_OneLove_buffer.mp4
+          ls -lh pub_OneLove_buffer.mp4
+          file pub_OneLove_buffer.mp4
+      - name: Commit assembled video
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pub_OneLove_buffer.mp4
+          git diff --cached --quiet && echo 'No changes' && exit 0
+          git commit -m "Assemble pub_OneLove_buffer.mp4"
+          git push
