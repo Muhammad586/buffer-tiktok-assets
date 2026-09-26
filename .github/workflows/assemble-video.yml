@@ -1,9 +1,6 @@
 name: Assemble video
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'chunks/**'
 jobs:
   assemble:
     runs-on: ubuntu-latest
@@ -14,10 +11,15 @@ jobs:
       - name: Assemble mp4 from base64 chunks
         run: |
           set -euo pipefail
-          mkdir -p out
-          cat chunks/part_* | base64 -d > pub_OneLove_buffer.mp4
+          n=$(ls chunks/part_*.b64 | wc -l)
+          echo "parts=$n"
+          cat chunks/part_*.b64 | base64 -d > pub_OneLove_buffer.mp4
           ls -lh pub_OneLove_buffer.mp4
           file pub_OneLove_buffer.mp4
+          # expect ~111045 bytes for ttok encode
+          sz=$(wc -c < pub_OneLove_buffer.mp4)
+          echo "size=$sz"
+          test "$sz" -ge 100000 -a "$sz" -le 120000
       - name: Commit assembled video
         run: |
           set -euo pipefail
@@ -25,5 +27,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pub_OneLove_buffer.mp4
           git diff --cached --quiet && echo 'No changes' && exit 0
-          git commit -m "Assemble pub_OneLove_buffer.mp4"
+          git commit -m "Assemble pub_OneLove_buffer.mp4 (ttok 360x640)"
           git push
