@@ -13,13 +13,14 @@ jobs:
           set -euo pipefail
           n=$(ls chunks/part_*.b64 | wc -l)
           echo "parts=$n"
+          test "$n" -eq 19
           cat chunks/part_*.b64 | base64 -d > pub_OneLove_buffer.mp4
           ls -lh pub_OneLove_buffer.mp4
           file pub_OneLove_buffer.mp4
-          # expect ~111045 bytes for ttok encode
           sz=$(wc -c < pub_OneLove_buffer.mp4)
           echo "size=$sz"
-          test "$sz" -ge 100000 -a "$sz" -le 120000
+          test "$sz" -eq 111074
+          echo "d3231ec381e8aa3e6b6be1967be6428abd848b4f44c0d89f709ee422898b57e5  pub_OneLove_buffer.mp4" | sha256sum -c
       - name: Commit assembled video
         run: |
           set -euo pipefail
@@ -27,5 +28,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pub_OneLove_buffer.mp4
           git diff --cached --quiet && echo 'No changes' && exit 0
-          git commit -m "Assemble pub_OneLove_buffer.mp4 (ttok 360x640)"
+          git commit -m "Assemble pub_OneLove_buffer.mp4 (ttok 360x640 111074B)"
           git push
