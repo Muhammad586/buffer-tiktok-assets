@@ -8,6 +8,20 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - name: Apply known LLM corruption fixes
+        run: |
+          set -euo pipefail
+          # Single-char corruptions from MCP text upload of base64 chunks
+          if [ -f chunks/part_001.b64 ]; then
+            sed -i 's|oIPDHbjwh4Y/FdV|oIPDHhjwh4Y/FdV|g' chunks/part_001.b64
+          fi
+          if [ -f chunks/part_003.b64 ]; then
+            sed -i 's|R4Mfic3EzdGN+Yn|R4Mfif3EzdGN+Yn|g' chunks/part_003.b64
+          fi
+          # Extra fixes appended below as discovered:
+          if [ -f chunks/fixes.sed ]; then
+            sed -i -f chunks/fixes.sed chunks/part_*.b64 || true
+          fi
       - name: Assemble mp4 from base64 chunks
         run: |
           set -euo pipefail
